@@ -1,0 +1,173 @@
+{% load static %}
+<style>
+    #member-img {
+        max-width: 100%;
+        max-height: 10em;
+        object-fit: scale-down;
+        object-position: center center;
+    }
+</style>
+<div class="container-fluid">
+    <form action="" id="member-form">
+        <input type="hidden" name="id" value="{{member.id}}">
+        <input type="hidden" name="code" value="generate_code">
+        <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-12 col-sm-12">
+                <div class="mb-3">
+                    <label for="group" class="control-label">Group</label>
+                    <select type="text" id="group" name="group" class="form-select form-select-sm rounded-0" required>
+                        {% if not member.group %}
+                            <option  disabled selected></option>
+                        {% else %}
+                            <option disabled>Male</option>
+                        {% endif %}
+                        {% for group in groups %}
+                        {% if  member.group.id == group.id %}
+                            <option value="{{group.id}}" selected>{{group.name}}</option>
+                        {% else %}
+                            <option value="{{group.id}}">{{group.name}}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="first_name" class="control-label">First Name</label>
+                    <input type="text" id="first_name" name="first_name" class="form-control form-control-sm rounded-0" value="{{member.first_name}}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="middle_name" class="control-label">Middle Name</label>
+                    <input type="text" id="middle_name" name="middle_name" class="form-control form-control-sm rounded-0" value="{{member.middle_name}}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="last_name" class="control-label">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" class="form-control form-control-sm rounded-0" value="{{member.last_name}}" required>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12 col-sm-12">
+                <div class="mb-3">
+                    <label for="gender" class="control-label">Gender</label>
+                    <select type="text" id="gender" name="gender" class="form-select form-select-sm rounded-0" required>
+                        {% if  member.gender == 'Male' %}
+                            <option selected>Male</option>
+                        {% else %}
+                            <option>Male</option>
+                        {% endif %}
+                        {% if  member.gender == 'Female' %}
+                            <option selected>Female</option>
+                        {% else %}
+                            <option>Female</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="contact" class="control-label">Contact #</label>
+                    <input type="text" id="contact" name="contact" class="form-control form-control-sm rounded-0" value="{{member.contact}}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="control-label">Email</label>
+                    <input type="email" id="email" name="email" class="form-control form-control-sm rounded-0" value="{{member.email}}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="address" class="control-label">Address</label>
+                    <textarea rows="3" id="address" name="address" class="form-control form-control-sm rounded-0" required>{{member.address}}</textarea>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                <div class="mb-3">
+                    <label for="image_path" class="control-label">Member Image</label>
+                    <input type="file" id="image_path" name="image_path" class="form-control form-control-sm rounded-0" onchange="display_image(this)" accept="image/png, image/jpeg">
+                </div>
+                <div class="mb-3">
+                    <img src="{% if member.image_path %}{{member.image_path.url}}{% else %}{% static 'assets/default/img/logo.jpg' %}{% endif %}" alt="" class="img-thumbnail bg-gradient-dark border" id="member-img">
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                <div class="mb-3">
+                    <label for="status" class="control-label">Status</label>
+                    <select type="text" id="status" name="status" class="form-select form-select-sm rounded-0" required>
+                        {% if member.status == '1' %}
+                        <option value="1" selected>Active</option>
+                        {% else %}
+                        <option value="1">Active</option>
+                        {% endif %}
+                        {% if member.status == '2' %}
+                        <option value="2" selected>Inactive</option>
+                        {% else %}
+                        <option value="2">Inactive</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    function display_image(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#member-img').attr('src', e.target.result);
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            $('#member-img').attr('src', "{% if member.image_path %}{{member.image_path.url}}{% else %}{% static 'assets/default/img/logo.jpg' %}{% endif %}");
+        }
+    }
+    $(function() {
+        $('#uni_modal').on('shown.bs.modal', function() {
+            $('#group').select2({
+                width: "100%",
+                placeholder: "Please Select Group Here",
+                dropdownParent: $('#uni_modal'),
+                containerCssClass: "form-select form-select-sm rounded-0"
+            })
+        })
+        $('#member-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url: "{% url 'save-member' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    alert("An error occured", 'error');
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        location.reload()
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.text(resp.msg)
+                    } else {
+                        el.text("An error occured", 'error');
+                        end_loader();
+                        console.err(resp)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal").scrollTop(0);
+                    end_loader()
+                }
+            })
+        })
+    })
+</script>

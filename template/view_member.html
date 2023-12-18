@@ -1,0 +1,40 @@
+ {% load static %} {% load humanize %}
+<style>
+    #uni_modal .modal-footer {
+        display: none
+    }
+    
+    #uni_modal .modal-sub-footer {
+        display: flex
+    }
+    
+    #member-img {
+        max-width: 100%;
+        max-height: 10em;
+        object-fit: scale-down;
+        object-position: center center
+    }
+</style>
+<div class="container-fluid" id="e-details">
+    <center>
+        <img src="{% if member.image_path %}{{member.image_path.url}}{% else %}{% static 'assets/default/img/logo.jpg' %}{% endif %}" alt="" class="img-thumbnail bg-gradient bg-dark" id="member-img">
+    </center>
+    <div class="lh-1">
+        <dl>
+            <dt>Group</dt>
+            <dd class="ps-4">{{member.group}}</dd>
+            <dt>Member Name</dt>
+            <dd class="ps-4">{{member.name}}</dd>
+            <dt>Gender</dt>
+            <dd class="ps-4">{{member.gender}}</dd>
+            <dt>Contact #</dt>
+            <dd class="ps-4">{{member.contact}}</dd>
+            <dt>Email</dt>
+            <dd class="ps-4">{{member.email}}</dd>
+            <dt>Address</dt>
+            <dd class="ps-4">{{member.address}}</dd>
+            <dt>Date and Time Added</dt>
+            <dd class="ps-4">{{member.date_added|date:"F d, Y h:i A"}}</dd>
+        </dl>
+    </div>
+</div>
